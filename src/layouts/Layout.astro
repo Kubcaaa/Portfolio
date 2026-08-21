@@ -1,0 +1,41 @@
+---
+import '../styles/global.css';
+
+export interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Charles Sage — Portfolio',
+  description = "I make brands move, smile, and be remembered.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+
+    <!-- Polices: Clash Display (display) + Switzer (texte) via Fontshare -->
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=switzer@400,500,600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- JetBrains Mono (labels / eyebrows) via Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

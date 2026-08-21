@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+  }
+  ::selection {
+    @apply bg-flare text-paper;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-widest2 text-muted;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

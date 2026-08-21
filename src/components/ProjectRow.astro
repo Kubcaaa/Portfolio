@@ -1,0 +1,57 @@
+---
+import RiveEmbed from './RiveEmbed.astro';
+import type { Project } from '../data/projects';
+
+export interface Props {
+  project: Project;
+  index: number;
+}
+
+const { project, index } = Astro.props;
+const isExternal = project.href.startsWith('http');
+---
+
+<a
+  href={project.href}
+  target={isExternal ? '_blank' : undefined}
+  rel={isExternal ? 'noreferrer' : undefined}
+  class="group grid grid-cols-1 gap-6 border-b border-line py-10 first:pt-0 last:border-b-0 sm:grid-cols-[1fr_1.3fr] sm:items-center sm:gap-10"
+  data-rive-hover-zone
+>
+  <div class="relative aspect-[4/3] overflow-hidden rounded-2xl bg-ink/[0.03]">
+    <img
+      src={project.cover}
+      alt={project.title}
+      loading="lazy"
+      class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+    />
+    {
+      project.riveHover && (
+        <div class="absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
+          <RiveEmbed
+            src={project.riveHover}
+            stateMachine="State Machine 1"
+            ariaLabel={`Aperçu animé — ${project.title}`}
+          />
+        </div>
+      )
+    }
+  </div>
+
+  <div>
+    <span class="eyebrow">
+      {String(index + 1).padStart(2, '0')} — {project.year}
+    </span>
+    <h3
+      class="mt-3 font-display text-2xl font-semibold tracking-tightest transition group-hover:text-flare md:text-3xl"
+    >
+      {project.title}
+    </h3>
+    <p class="mt-3 font-mono text-[11px] uppercase tracking-widest2 text-muted">
+      {project.categories.join(' · ')}
+    </p>
+    <p class="mt-1 font-mono text-[11px] uppercase tracking-widest2 text-muted/70">
+      {project.tools.join(' · ')}
+    </p>
+  </div>
+</a>

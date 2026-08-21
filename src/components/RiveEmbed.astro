@@ -1,0 +1,104 @@
+---
+// Composant générique pour intégrer un fichier .riv (Rive) via @rive-app/canvas.
+// - src: chemin vers le fichier .riv dans /public/rive
+// - stateMachine: nom de la State Machine à piloter (créée dans l'éditeur Rive)
+// - hoverInput: nom d'un input booléen de la State Machine à basculer au survol
+//   (ex: une input "Hover" que tu crées toi-même dans Rive)
+// - autoplay: joue l'animation par défaut au chargement
+
+export interface Props {
+  src: string;
+  stateMachine?: string;
+  hoverInput?: string;
+  autoplay?: boolean;
+  ariaLabel?: string;
+  class?: string;
+}
+
+const {
+  src,
+  stateMachine,
+  hoverInput,
+  autoplay = true,
+  ariaLabel = 'Animation',
+  class: className = '',
+} = Astro.props;
+
+const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<canvas
+  id={uid}
+  data-rive-src={src}
+  data-rive-state-machine={stateMachine}
+  data-rive-hover-input={hoverInput}
+  data-rive-autoplay={String(autoplay)}
+  role="img"
+  aria-label={ariaLabel}
+  class={`block h-full w-full ${className}`}
+></canvas>
+
+<script>
+  import { Rive, Layout, Fit, Alignment } from '@rive-app/canvas';
+
+  function mountRive(canvas: HTMLCanvasElement) {
+    const src = canvas.dataset.riveSrc;
+    if (!src) return;
+
+    const stateMachines = canvas.dataset.riveStateMachine
+      ? [canvas.dataset.riveStateMachine]
+      : undefined;
+    const hoverInputName = canvas.dataset.riveHoverInput;
+    const autoplay = canvas.dataset.riveAutoplay !== 'false';
+
+    const rive = new Rive({
+      src,
+      canvas,
+      autoplay,
+      stateMachines,
+      layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
+      onLoad: () => {
+        rive.resizeDrawingSurfaceToCanvas();
+      },
+    });
+
+    // Bascule un input booléen de la State Machine au survol de la zone parente
+    // (utile pour les aperçus de projet: la carte entière déclenche l'animation)
+    if (hoverInputName && stateMachines) {
+      const zone =
+        (canvas.closest('[data-rive-hover-zone]') as HTMLElement | null) ??
+        canvas.parentElement;
+
+      const setHover = (value: boolean) => {
+        try {
+          const inputs = rive.stateMachineInputs(stateMachines[0]);
+          const input = inputs?.find((i) => i.name === hoverInputName);
+          if (input) input.value = value;
+        } catch {
+          // la State Machine n'est pas encore prête, on ignore silencieusement
+        }
+      };
+
+      zone?.addEventListener('mouseenter', () => setHover(true));
+      zone?.addEventListener('mouseleave', () => setHover(false));
+    }
+
+    const resize = () => rive.resizeDrawingSurfaceToCanvas();
+    window.addEventListener('resize', resize);
+  }
+
+  const prefersReducedMotion = window.matchMedia(
+    '(prefers-reduced-motion: reduce)'
+  ).matches;
+
+  document
+    .querySelectorAll<HTMLCanvasElement>('canvas[data-rive-src]')
+    .forEach((canvas) => {
+      if (prefersReducedMotion) {
+        // On respecte la préférence utilisateur: pas de lecture automatique.
+        // Tu peux remplacer ceci par une image statique de repli si besoin.
+        return;
+      }
+      mountRive(canvas);
+    });
+</script>
