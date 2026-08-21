@@ -1,0 +1,32 @@
+---
+export interface Props {
+  name: string;
+  variant?: 'overlay' | 'pill';
+}
+
+const { name, variant = 'pill' } = Astro.props;
+
+// Monogrammes simples et colorés plutôt que les logos exacts des outils.
+const monograms: Record<string, { label: string; className: string }> = {
+  Rive: { label: 'R', className: 'bg-ink text-paper' },
+  Figma: { label: 'Fg', className: 'bg-flare text-paper' },
+  Framer: { label: 'Fr', className: 'bg-signal text-paper' },
+  Blender: { label: 'Bl', className: 'bg-muted text-paper' },
+};
+
+const mono = monograms[name] ?? { label: name.slice(0, 2), className: 'bg-ink text-paper' };
+
+const base =
+  variant === 'overlay'
+    ? 'inline-flex items-center gap-2 rounded-lg bg-ink/70 py-1.5 pl-1.5 pr-3 text-xs font-medium text-paper backdrop-blur-sm'
+    : 'inline-flex items-center gap-2 rounded-xl border border-line/70 bg-paper py-1.5 pl-1.5 pr-3 text-sm font-medium text-ink';
+---
+
+<span class={base}>
+  <span
+    class={`flex h-5 w-5 items-center justify-center rounded-md font-mono text-[10px] font-bold ${mono.className}`}
+  >
+    {mono.label}
+  </span>
+  {name}
+</span>

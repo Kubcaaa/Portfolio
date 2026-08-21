@@ -1,0 +1,64 @@
+---
+export interface Props {
+  name: string;
+}
+
+const { name } = Astro.props;
+
+const icons: Record<string, { type: 'fill' | 'stroke'; path: string; className: string }> = {
+  Branding: {
+    type: 'fill',
+    path: 'M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2z',
+    className: 'bg-flare text-paper',
+  },
+  Web: {
+    type: 'stroke',
+    path: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5Z M9 4v16',
+    className: 'bg-signal text-paper',
+  },
+  Print: {
+    type: 'stroke',
+    path: 'M6 9V4h12v5M6 18H5a1 1 0 01-1-1v-5a1 1 0 011-1h14a1 1 0 011 1v5a1 1 0 01-1 1h-1M7 14h10v6H7z',
+    className: 'bg-ink text-paper',
+  },
+  'Interactive design': {
+    type: 'fill',
+    path: 'M4 3l7.5 18 2-7.5L21 11.5 4 3z',
+    className: 'bg-flare text-paper',
+  },
+  UI: {
+    type: 'fill',
+    path: 'M4 4h6v6H4V4Z M14 4h6v6h-6V4Z M4 14h6v6H4V14Z M14 14h6v6h-6V14Z',
+    className: 'bg-signal text-paper',
+  },
+};
+
+const icon = icons[name] ?? icons.Web;
+---
+
+<span
+  class="inline-flex items-center gap-2 rounded-xl border border-line/70 bg-paper py-1.5 pl-1.5 pr-3 text-sm font-medium text-ink"
+>
+  <span class={`flex h-6 w-6 items-center justify-center rounded-md ${icon.className}`}>
+    {
+      icon.type === 'fill' ? (
+        <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor">
+          <path d={icon.path} />
+        </svg>
+      ) : (
+        <svg
+          viewBox="0 0 24 24"
+          class="h-3.5 w-3.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d={icon.path} />
+        </svg>
+      )
+    }
+  </span>
+  {name}
+</span>

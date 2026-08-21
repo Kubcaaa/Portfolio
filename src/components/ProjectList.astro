@@ -4,12 +4,5 @@ import ProjectRow from './ProjectRow.astro';
 ---
 
 <section id="work" class="px-6 py-10 xs:px-10 lg:w-[58%] lg:py-14">
-  <div class="mb-2 flex items-center justify-between border-b border-line pb-4">
-    <span class="eyebrow">Travail sélectionné</span>
-    <span class="eyebrow">{projects.length} projets</span>
-  </div>
-
-  <div>
-    {projects.map((project, index) => <ProjectRow project={project} index={index} />)}
-  </div>
+  {projects.map((project) => <ProjectRow project={project} />)}
 </section>
