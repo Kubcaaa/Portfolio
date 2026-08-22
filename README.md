@@ -32,8 +32,23 @@ Sur mobile, les deux colonnes s'empilent (intro en premier, puis la liste).
 
 ## Intégration Rive
 
-Le composant `src/components/RiveEmbed.astro` charge `@rive-app/canvas` côté client et monte
-chaque `.riv` sur un `<canvas>`. Deux façons de le rendre interactif :
+Le composant `src/components/RiveEmbed.astro` charge **`@rive-app/webgl`** (et non
+`@rive-app/canvas`) côté client et monte chaque `.riv` sur un `<canvas>`.
+
+⚠️ **Important — vector feathering** : si tes fichiers `.riv` utilisent le vector
+feathering (flous/glows sur des formes), seul le renderer WebGL2 de Rive ("Rive
+Renderer") sait l'afficher. Le runtime Canvas 2D (`@rive-app/canvas`) l'ignore
+silencieusement et affiche des bords nets à la place — ce n'est pas un problème de
+version, c'est une limitation du renderer Canvas lui-même. D'où le choix de
+`@rive-app/webgl` ici.
+
+Contrepartie : les navigateurs limitent le nombre de **contextes WebGL actifs
+simultanément** par page (souvent 8 à 16 selon le GPU/navigateur). Comme la liste de
+projets peut s'allonger, `RiveEmbed.astro` monte chaque animation seulement quand sa
+carte approche du viewport (`IntersectionObserver`) et appelle `rive.cleanup()`
+quand elle en sort, pour ne jamais dépasser cette limite.
+
+Deux façons de rendre une animation interactive :
 
 1. **Listener natif Rive** (utilisé pour la marque de la colonne gauche) : dans l'éditeur Rive,
    ajoute un Listener sur ton Artboard (Pointer Move / Pointer Enter) qui pilote directement la

@@ -1,10 +1,21 @@
 ---
-// Composant générique pour intégrer un fichier .riv (Rive) via @rive-app/canvas.
+// Composant générique pour intégrer un fichier .riv (Rive) via @rive-app/webgl.
+// On utilise le renderer WebGL (et non @rive-app/canvas) car le vector feathering
+// (flous/glows appliqués aux formes dans l'éditeur Rive) n'est rendu que par le
+// "Rive Renderer" en WebGL2 — le runtime Canvas 2D l'ignore silencieusement et
+// affiche des bords nets à la place.
+//
 // - src: chemin vers le fichier .riv dans /public/rive
 // - stateMachine: nom de la State Machine à piloter (créée dans l'éditeur Rive)
 // - hoverInput: nom d'un input booléen de la State Machine à basculer au survol
 //   (ex: une input "Hover" que tu crées toi-même dans Rive)
 // - autoplay: joue l'animation par défaut au chargement
+//
+// Note WebGL: les navigateurs limitent le nombre de contextes WebGL actifs en
+// même temps par page (souvent ~8-16 selon le GPU/navigateur). Comme le site
+// affiche plusieurs Rive dans une liste qui défile, ce composant monte
+// l'animation seulement quand sa carte approche du viewport et la détruit
+// (rive.cleanup()) quand elle en sort, pour ne jamais dépasser cette limite.
 
 export interface Props {
   src: string;
@@ -39,11 +50,17 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
 ></canvas>
 
 <script>
-  import { Rive, Layout, Fit, Alignment } from '@rive-app/canvas';
+  import { Rive, Layout, Fit, Alignment } from '@rive-app/webgl';
 
-  function mountRive(canvas: HTMLCanvasElement) {
+  type RiveInstance = InstanceType<typeof Rive>;
+
+  const prefersReducedMotion = window.matchMedia(
+    '(prefers-reduced-motion: reduce)'
+  ).matches;
+
+  function mountRive(canvas: HTMLCanvasElement): RiveInstance | null {
     const src = canvas.dataset.riveSrc;
-    if (!src) return;
+    if (!src) return null;
 
     const stateMachines = canvas.dataset.riveStateMachine
       ? [canvas.dataset.riveStateMachine]
@@ -85,11 +102,9 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
 
     const resize = () => rive.resizeDrawingSurfaceToCanvas();
     window.addEventListener('resize', resize);
-  }
 
-  const prefersReducedMotion = window.matchMedia(
-    '(prefers-reduced-motion: reduce)'
-  ).matches;
+    return rive;
+  }
 
   document
     .querySelectorAll<HTMLCanvasElement>('canvas[data-rive-src]')
@@ -99,6 +114,24 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
         // Tu peux remplacer ceci par une image statique de repli si besoin.
         return;
       }
-      mountRive(canvas);
+
+      let rive: RiveInstance | null = null;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting && !rive) {
+              rive = mountRive(canvas);
+            } else if (!entry.isIntersecting && rive) {
+              // Libère le contexte WebGL tant que la carte est hors-écran.
+              rive.cleanup();
+              rive = null;
+            }
+          }
+        },
+        { rootMargin: '200px' }
+      );
+
+      observer.observe(canvas);
     });
 </script>
