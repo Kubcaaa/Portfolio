@@ -6,66 +6,52 @@ export type Project = {
   year: string;
   href: string;
   cover: string;
-  /** Chemin optionnel vers un .riv joué au survol de la ligne */
+  /** Chemin vers le .riv affiché en plein cadre (fill) sur la carte */
   riveHover?: string;
 };
 
+// Chaque entrée correspond à un fichier .riv réellement présent dans public/rive/.
+// Ajuste titre / catégories / outils / lien librement, les noms de fichiers
+// dans `riveHover` doivent juste rester alignés avec public/rive/.
 export const projects: Project[] = [
   {
-    slug: 'dn-interiores',
-    title: 'DN Interiores',
-    categories: ['Web', 'UI'],
-    tools: ['Framer', 'Figma'],
-    year: '2024',
-    href: 'https://dninteriores.framer.website/',
-    cover: '/images/projects/dn-interiores.jpg',
-    riveHover: '/rive/floral.riv',
-  },
-  {
-    slug: 'salty-flamingos',
-    title: 'The Salty Flamingos',
+    slug: 'dataprotect',
+    title: 'DataProtect',
     categories: ['Branding', 'Interactive design'],
     tools: ['Rive', 'Figma'],
     year: '2025',
     href: '#',
-    cover: '/images/projects/salty-flamingos.jpg',
+    cover: '/images/projects/dataprotect.jpg',
     riveHover: '/rive/dataprotect.riv',
   },
   {
-    slug: 'maison-boule',
-    title: 'Maison Boulé',
-    categories: ['Branding', 'Print'],
-    tools: ['Figma', 'Blender'],
-    year: '2024',
+    slug: 'chocolat-cart',
+    title: 'Chocolat Cart',
+    categories: ['Branding', 'Interactive design'],
+    tools: ['Rive', 'Figma'],
+    year: '2025',
     href: '#',
-    cover: '/images/projects/maison-boule.jpg',
-  },
-  {
-    slug: 'motion-system',
-    title: 'Système de motion — étude',
-    categories: ['Interactive design'],
-    tools: ['Rive'],
-    year: '2023',
-    href: '#',
-    cover: '/images/projects/motion-system.jpg',
+    cover: '/images/projects/chocolat-cart.jpg',
     riveHover: '/rive/chocolat_cart3.riv',
   },
   {
-    slug: 'print-identity',
-    title: 'Identité imprimée',
-    categories: ['Print', 'Branding'],
-    tools: ['Figma'],
-    year: '2023',
+    slug: 'floral',
+    title: 'Floral',
+    categories: ['Branding', 'Interactive design'],
+    tools: ['Rive', 'Figma'],
+    year: '2024',
     href: '#',
-    cover: '/images/projects/print-identity.jpg',
+    cover: '/images/projects/floral.jpg',
+    riveHover: '/rive/floral.riv',
   },
   {
-    slug: 'ui-kit',
-    title: 'Kit UI produit',
-    categories: ['UI', 'Web'],
-    tools: ['Figma', 'Framer'],
-    year: '2022',
+    slug: 'swiss-knife',
+    title: 'Swiss Knife',
+    categories: ['Interactive design', 'UI'],
+    tools: ['Rive', 'Figma'],
+    year: '2024',
     href: '#',
-    cover: '/images/projects/ui-kit.jpg',
+    cover: '/images/projects/swiss-knife.jpg',
+    riveHover: '/rive/swiss_knife.riv',
   },
 ];
