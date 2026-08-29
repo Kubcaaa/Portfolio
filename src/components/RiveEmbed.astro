@@ -7,13 +7,17 @@
 // faut surtout pas l'utiliser — c'est le piège dans lequel on est tombé une fois.
 //
 // - src: chemin vers le fichier .riv dans /public/rive
-// - stateMachine: nom EXACT d'une State Machine à cibler en particulier (optionnel).
-//   Si tu ne le passes pas, le composant détecte automatiquement TOUTES les
-//   State Machines présentes dans le fichier et les active — donc les Listeners
-//   et interactions que tu as configurés dans l'éditeur Rive fonctionnent sans
-//   que tu aies à connaître ou taper leur nom exact ici.
+// - artboard: nom EXACT de l'artboard à charger (optionnel — sinon Rive charge
+//   l'artboard par défaut du fichier, qui peut différer de celui utilisé sur
+//   Framer). C'est souvent LA cause d'une State Machine "introuvable": elle
+//   existe bien, mais sur un artboard différent de celui chargé par défaut.
+// - stateMachine: nom EXACT d'une State Machine à cibler en particulier
+//   (optionnel). Si tu ne le passes pas, le composant détecte automatiquement
+//   TOUTES les State Machines de l'artboard chargé et les active.
 // - hoverInput: nom d'un input booléen à basculer au survol (cherché dans
 //   toutes les State Machines actives si `stateMachine` n'est pas précisé)
+// - autoBind: équivalent du réglage "Auto Bind" de Framer — lie automatiquement
+//   la ViewModel Instance par défaut si le fichier utilise le Data Binding Rive
 // - autoplay: joue l'animation par défaut au chargement
 //
 // Note WebGL: les navigateurs limitent le nombre de contextes WebGL actifs en
@@ -24,18 +28,22 @@
 
 export interface Props {
   src: string;
+  artboard?: string;
   stateMachine?: string;
   hoverInput?: string;
   autoplay?: boolean;
+  autoBind?: boolean;
   ariaLabel?: string;
   class?: string;
 }
 
 const {
   src,
+  artboard,
   stateMachine,
   hoverInput,
   autoplay = true,
+  autoBind = true,
   ariaLabel = 'Animation',
   class: className = '',
 } = Astro.props;
@@ -46,11 +54,14 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
 <canvas
   id={uid}
   data-rive-src={src}
+  data-rive-artboard={artboard}
   data-rive-state-machine={stateMachine}
   data-rive-hover-input={hoverInput}
   data-rive-autoplay={String(autoplay)}
+  data-rive-auto-bind={String(autoBind)}
   role="img"
   aria-label={ariaLabel}
+  style="touch-action: pan-y;"
   class={`block h-full w-full ${className}`}
 ></canvas>
 
@@ -67,6 +78,7 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
     const src = canvas.dataset.riveSrc;
     if (!src) return null;
 
+    const artboard = canvas.dataset.riveArtboard || undefined;
     // Si un nom précis est fourni, on cible uniquement celui-là. Sinon on laisse
     // `stateMachines` vide au chargement et on activera TOUT ce qu'on trouve
     // une fois le fichier chargé (voir onLoad plus bas) — ça marche quel que
@@ -74,20 +86,23 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
     const explicitStateMachine = canvas.dataset.riveStateMachine || undefined;
     const hoverInputName = canvas.dataset.riveHoverInput;
     const autoplay = canvas.dataset.riveAutoplay !== 'false';
+    const autoBind = canvas.dataset.riveAutoBind !== 'false';
 
     const rive = new Rive({
       src,
       canvas,
+      artboard,
       autoplay,
+      autoBind,
       stateMachines: explicitStateMachine ? [explicitStateMachine] : undefined,
       useOffscreenRenderer: true,
       layout: new Layout({ fit: Fit.Cover, alignment: Alignment.Center }),
       onLoad: () => {
         rive.resizeDrawingSurfaceToCanvas();
 
-        // Aucun nom précis fourni: on découvre les State Machines du fichier
-        // et on les joue toutes, pour activer Listeners/transitions sans avoir
-        // besoin de connaître leur nom exact à l'avance.
+        // Aucun nom précis fourni: on découvre les State Machines de l'artboard
+        // chargé et on les joue toutes, pour activer Listeners/transitions sans
+        // avoir besoin de connaître leur nom exact à l'avance.
         if (!explicitStateMachine) {
           const names = rive.stateMachineNames;
           if (names && names.length > 0) {

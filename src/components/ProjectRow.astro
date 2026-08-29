@@ -15,12 +15,18 @@ const isExternal = project.href.startsWith('http');
   href={project.href}
   target={isExternal ? '_blank' : undefined}
   rel={isExternal ? 'noreferrer' : undefined}
-  class="group relative mb-16 block last:mb-0"
+  class="group mb-16 block last:mb-0"
 >
-  <div class="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-ink/[0.03]">
+  <!-- Hauteur fixe 544px / largeur pleine, comme le composant RivePlayer sur Framer -->
+  <div class="h-[544px] w-full overflow-hidden rounded-2xl bg-ink/[0.03]">
     {
       project.riveHover ? (
-        <RiveEmbed src={project.riveHover} ariaLabel={project.title} />
+        <RiveEmbed
+          src={project.riveHover}
+          artboard={project.riveArtboard}
+          stateMachine={project.riveStateMachine}
+          ariaLabel={project.title}
+        />
       ) : (
         <img
           src={project.cover}
@@ -30,9 +36,9 @@ const isExternal = project.href.startsWith('http');
         />
       )
     }
+  </div>
 
-    <div class="pointer-events-none absolute bottom-4 left-4 flex flex-wrap gap-2">
-      {project.tools.map((tool) => <ToolPill name={tool} variant="overlay" />)}
-    </div>
+  <div class="mt-4 flex flex-wrap gap-2">
+    {project.tools.map((tool) => <ToolPill name={tool} variant="pill" />)}
   </div>
 </a>
