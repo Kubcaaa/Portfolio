@@ -20,11 +20,7 @@ const isExternal = project.href.startsWith('http');
   <div class="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-ink/[0.03]">
     {
       project.riveHover ? (
-        <RiveEmbed
-          src={project.riveHover}
-          stateMachine="State Machine 1"
-          ariaLabel={project.title}
-        />
+        <RiveEmbed src={project.riveHover} ariaLabel={project.title} />
       ) : (
         <img
           src={project.cover}

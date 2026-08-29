@@ -1,9 +1,10 @@
 ---
-// Composant générique pour intégrer un fichier .riv (Rive) via @rive-app/webgl.
-// On utilise le renderer WebGL (et non @rive-app/canvas) car le vector feathering
+// Composant générique pour intégrer un fichier .riv (Rive) via @rive-app/webgl2.
+// On utilise ce renderer (et non @rive-app/canvas) car le vector feathering
 // (flous/glows appliqués aux formes dans l'éditeur Rive) n'est rendu que par le
-// "Rive Renderer" en WebGL2 — le runtime Canvas 2D l'ignore silencieusement et
-// affiche des bords nets à la place.
+// "Rive Renderer" — le runtime Canvas 2D ne le supporte pas encore.
+// Note: @rive-app/webgl (sans le "2") est déprécié depuis la v2.37.0, il ne
+// faut surtout pas l'utiliser — c'est le piège dans lequel on est tombé une fois.
 //
 // - src: chemin vers le fichier .riv dans /public/rive
 // - stateMachine: nom de la State Machine à piloter (créée dans l'éditeur Rive)
@@ -50,7 +51,7 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
 ></canvas>
 
 <script>
-  import { Rive, Layout, Fit, Alignment } from '@rive-app/webgl';
+  import { Rive, Layout, Fit, Alignment } from '@rive-app/webgl2';
 
   type RiveInstance = InstanceType<typeof Rive>;
 
@@ -73,6 +74,7 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
       canvas,
       autoplay,
       stateMachines,
+      useOffscreenRenderer: true,
       layout: new Layout({ fit: Fit.Cover, alignment: Alignment.Center }),
       onLoad: () => {
         rive.resizeDrawingSurfaceToCanvas();

@@ -32,15 +32,22 @@ Sur mobile, les deux colonnes s'empilent (intro en premier, puis la liste).
 
 ## Intégration Rive
 
-Le composant `src/components/RiveEmbed.astro` charge **`@rive-app/webgl`** (et non
-`@rive-app/canvas`) côté client et monte chaque `.riv` sur un `<canvas>`.
+Le composant `src/components/RiveEmbed.astro` charge **`@rive-app/webgl2`** (et non
+`@rive-app/canvas`, ni `@rive-app/webgl` qui est déprécié depuis la v2.37.0) côté
+client et monte chaque `.riv` sur un `<canvas>`.
 
 ⚠️ **Important — vector feathering** : si tes fichiers `.riv` utilisent le vector
 feathering (flous/glows sur des formes), seul le renderer WebGL2 de Rive ("Rive
-Renderer") sait l'afficher. Le runtime Canvas 2D (`@rive-app/canvas`) l'ignore
-silencieusement et affiche des bords nets à la place — ce n'est pas un problème de
-version, c'est une limitation du renderer Canvas lui-même. D'où le choix de
-`@rive-app/webgl` ici.
+Renderer", exposé par `@rive-app/webgl2`) sait l'afficher. Le runtime Canvas 2D
+(`@rive-app/canvas`) ne le supporte pas encore — ce n'est pas un problème de
+version, c'est une limitation du renderer Canvas lui-même à ce jour.
+
+⚠️ **State Machine par défaut** : par défaut, `RiveEmbed` ne force aucun nom de
+State Machine — Rive joue automatiquement l'animation/State Machine par défaut de
+l'artboard. Si tu veux cibler une State Machine précise (par exemple pour
+`hoverInput`), passe son **nom exact** (sensible à la casse) via la prop
+`stateMachine`. Tu peux vérifier ce nom dans l'éditeur Rive, dans le panneau du
+State Machine concerné.
 
 Contrepartie : les navigateurs limitent le nombre de **contextes WebGL actifs
 simultanément** par page (souvent 8 à 16 selon le GPU/navigateur). Comme la liste de
