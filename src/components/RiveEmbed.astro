@@ -7,9 +7,13 @@
 // faut surtout pas l'utiliser — c'est le piège dans lequel on est tombé une fois.
 //
 // - src: chemin vers le fichier .riv dans /public/rive
-// - stateMachine: nom de la State Machine à piloter (créée dans l'éditeur Rive)
-// - hoverInput: nom d'un input booléen de la State Machine à basculer au survol
-//   (ex: une input "Hover" que tu crées toi-même dans Rive)
+// - stateMachine: nom EXACT d'une State Machine à cibler en particulier (optionnel).
+//   Si tu ne le passes pas, le composant détecte automatiquement TOUTES les
+//   State Machines présentes dans le fichier et les active — donc les Listeners
+//   et interactions que tu as configurés dans l'éditeur Rive fonctionnent sans
+//   que tu aies à connaître ou taper leur nom exact ici.
+// - hoverInput: nom d'un input booléen à basculer au survol (cherché dans
+//   toutes les State Machines actives si `stateMachine` n'est pas précisé)
 // - autoplay: joue l'animation par défaut au chargement
 //
 // Note WebGL: les navigateurs limitent le nombre de contextes WebGL actifs en
@@ -63,9 +67,11 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
     const src = canvas.dataset.riveSrc;
     if (!src) return null;
 
-    const stateMachines = canvas.dataset.riveStateMachine
-      ? [canvas.dataset.riveStateMachine]
-      : undefined;
+    // Si un nom précis est fourni, on cible uniquement celui-là. Sinon on laisse
+    // `stateMachines` vide au chargement et on activera TOUT ce qu'on trouve
+    // une fois le fichier chargé (voir onLoad plus bas) — ça marche quel que
+    // soit le nom réel donné à la State Machine dans l'éditeur Rive.
+    const explicitStateMachine = canvas.dataset.riveStateMachine || undefined;
     const hoverInputName = canvas.dataset.riveHoverInput;
     const autoplay = canvas.dataset.riveAutoplay !== 'false';
 
@@ -73,26 +79,43 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
       src,
       canvas,
       autoplay,
-      stateMachines,
+      stateMachines: explicitStateMachine ? [explicitStateMachine] : undefined,
       useOffscreenRenderer: true,
       layout: new Layout({ fit: Fit.Cover, alignment: Alignment.Center }),
       onLoad: () => {
         rive.resizeDrawingSurfaceToCanvas();
+
+        // Aucun nom précis fourni: on découvre les State Machines du fichier
+        // et on les joue toutes, pour activer Listeners/transitions sans avoir
+        // besoin de connaître leur nom exact à l'avance.
+        if (!explicitStateMachine) {
+          const names = rive.stateMachineNames;
+          if (names && names.length > 0) {
+            rive.play(names);
+          }
+        }
       },
     });
 
-    // Bascule un input booléen de la State Machine au survol de la zone parente
-    // (utile pour les aperçus de projet: la carte entière déclenche l'animation)
-    if (hoverInputName && stateMachines) {
+    // Bascule un input booléen au survol de la zone parente (utile pour les
+    // aperçus de projet: la carte entière déclenche l'animation). On cherche
+    // l'input dans la State Machine ciblée si elle est précisée, sinon dans
+    // toutes les State Machines actives du fichier.
+    if (hoverInputName) {
       const zone =
         (canvas.closest('[data-rive-hover-zone]') as HTMLElement | null) ??
         canvas.parentElement;
 
       const setHover = (value: boolean) => {
         try {
-          const inputs = rive.stateMachineInputs(stateMachines[0]);
-          const input = inputs?.find((i) => i.name === hoverInputName);
-          if (input) input.value = value;
+          const names = explicitStateMachine
+            ? [explicitStateMachine]
+            : rive.stateMachineNames;
+          for (const name of names ?? []) {
+            const inputs = rive.stateMachineInputs(name);
+            const input = inputs?.find((i) => i.name === hoverInputName);
+            if (input) input.value = value;
+          }
         } catch {
           // la State Machine n'est pas encore prête, on ignore silencieusement
         }

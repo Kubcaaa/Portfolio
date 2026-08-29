@@ -42,12 +42,13 @@ Renderer", exposé par `@rive-app/webgl2`) sait l'afficher. Le runtime Canvas 2D
 (`@rive-app/canvas`) ne le supporte pas encore — ce n'est pas un problème de
 version, c'est une limitation du renderer Canvas lui-même à ce jour.
 
-⚠️ **State Machine par défaut** : par défaut, `RiveEmbed` ne force aucun nom de
-State Machine — Rive joue automatiquement l'animation/State Machine par défaut de
-l'artboard. Si tu veux cibler une State Machine précise (par exemple pour
-`hoverInput`), passe son **nom exact** (sensible à la casse) via la prop
-`stateMachine`. Tu peux vérifier ce nom dans l'éditeur Rive, dans le panneau du
-State Machine concerné.
+⚠️ **State Machine** : par défaut, `RiveEmbed` ne force aucun nom — il détecte
+automatiquement toutes les State Machines présentes dans le fichier chargé et
+les active toutes, pour que les Listeners/interactions configurés dans
+l'éditeur Rive fonctionnent sans que tu aies à connaître leur nom exact. Si tu
+veux cibler une State Machine précise (utile surtout pour `hoverInput` si un
+fichier en contient plusieurs), passe son **nom exact** (sensible à la casse)
+via la prop `stateMachine`.
 
 Contrepartie : les navigateurs limitent le nombre de **contextes WebGL actifs
 simultanément** par page (souvent 8 à 16 selon le GPU/navigateur). Comme la liste de
