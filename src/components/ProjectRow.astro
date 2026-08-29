@@ -17,8 +17,11 @@ const isExternal = project.href.startsWith('http');
   rel={isExternal ? 'noreferrer' : undefined}
   class="group mb-16 block last:mb-0"
 >
-  <!-- Hauteur fixe 544px / largeur pleine, comme le composant RivePlayer sur Framer -->
-  <div class="h-[544px] w-full overflow-hidden rounded-2xl bg-ink/[0.03]">
+  <!-- Hauteur propre à ce projet (copiée depuis sa config Framer), largeur pleine -->
+  <div
+    class="w-full overflow-hidden rounded-2xl bg-ink/[0.03]"
+    style={`height: ${project.riveHeight}px`}
+  >
     {
       project.riveHover ? (
         <RiveEmbed

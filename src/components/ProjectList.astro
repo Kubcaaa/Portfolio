@@ -3,6 +3,6 @@ import { projects } from '../data/projects';
 import ProjectRow from './ProjectRow.astro';
 ---
 
-<section id="work" class="px-6 py-10 xs:px-10 lg:w-[58%] lg:py-14">
+<section id="work" class="px-6 py-10 xs:px-10 lg:w-2/3 lg:py-14">
   {projects.map((project) => <ProjectRow project={project} />)}
 </section>
