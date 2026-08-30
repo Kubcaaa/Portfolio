@@ -17,10 +17,14 @@ const isExternal = project.href.startsWith('http');
   rel={isExternal ? 'noreferrer' : undefined}
   class="group mb-16 block last:mb-0"
 >
-  <!-- Hauteur propre à ce projet (copiée depuis sa config Framer), largeur pleine -->
+  <!--
+    min-height = hauteur de secours affichée avant que le .riv soit chargé
+    (évite un saut de mise en page). Une fois chargé, RiveEmbed applique le
+    ratio natif réel de l'artwork au conteneur, qui prend le dessus.
+  -->
   <div
     class="w-full overflow-hidden rounded-2xl bg-ink/[0.03]"
-    style={`height: ${project.riveHeight}px`}
+    style={`min-height: ${project.riveHeight}px`}
   >
     {
       project.riveHover ? (

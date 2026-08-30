@@ -98,6 +98,22 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
       useOffscreenRenderer: true,
       layout: new Layout({ fit: Fit.Cover, alignment: Alignment.Center }),
       onLoad: () => {
+        // Verrouille le ratio largeur/hauteur natif de l'artwork (équivalent
+        // du petit cadenas "lock aspect ratio" sur Framer): on lit les bornes
+        // réelles de l'artboard chargé et on applique ce ratio au conteneur
+        // parent. Comme ça, en Fit: Cover, la hauteur suit toujours la
+        // largeur disponible dans la même proportion que le dessin d'origine
+        // — au lieu d'une hauteur fixe en pixels qui finit par rogner
+        // beaucoup trop sur les côtés quand la colonne s'élargit.
+        const bounds = rive.bounds;
+        const container = canvas.parentElement;
+        if (bounds && container) {
+          const width = bounds.maxX - bounds.minX;
+          const height = bounds.maxY - bounds.minY;
+          if (width > 0 && height > 0) {
+            container.style.aspectRatio = `${width} / ${height}`;
+          }
+        }
         rive.resizeDrawingSurfaceToCanvas();
 
         // Aucun nom précis fourni: on découvre les State Machines de l'artboard
