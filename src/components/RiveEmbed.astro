@@ -3,28 +3,33 @@
 // On utilise ce renderer (et non @rive-app/canvas) car le vector feathering
 // (flous/glows appliqués aux formes dans l'éditeur Rive) n'est rendu que par le
 // "Rive Renderer" — le runtime Canvas 2D ne le supporte pas encore.
-// Note: @rive-app/webgl (sans le "2") est déprécié depuis la v2.37.0, il ne
-// faut surtout pas l'utiliser — c'est le piège dans lequel on est tombé une fois.
+// Note: @rive-app/webgl (sans le "2") est déprécié depuis la v2.37.0.
+//
+// --- Optimisations perf (pourquoi le CPU/GPU chauffait) ---
+// 1. Résolution plafonnée: par défaut Rive dessine à `devicePixelRatio` natif
+//    (jusqu'à 3x sur certains laptops), soit jusqu'à 9x plus de pixels par
+//    frame. On plafonne à 1.5x via resizeDrawingSurfaceToCanvas(dpr) — gain
+//    visuel imperceptible, charge GPU nettement réduite, x4 cartes.
+// 2. Pause plutôt que destruction: on ne crée chaque instance Rive qu'une
+//    seule fois (au premier passage dans le viewport), puis on la met juste
+//    en pause/lecture au lieu de la détruire et la reconstruire à chaque
+//    scroll — évite de re-télécharger/re-parser le .riv à répétition.
+// 3. Onglet caché = tout en pause: un site avec plusieurs animations qui
+//    tournent alors que l'onglet n'est même plus affiché sollicite le GPU
+//    pour rien.
+// 4. Un seul listener resize partagé, limité à une fois par frame
+//    (requestAnimationFrame) au lieu d'un listener par carte déclenché à
+//    chaque pixel de redimensionnement.
 //
 // - src: chemin vers le fichier .riv dans /public/rive
 // - artboard: nom EXACT de l'artboard à charger (optionnel — sinon Rive charge
-//   l'artboard par défaut du fichier, qui peut différer de celui utilisé sur
-//   Framer). C'est souvent LA cause d'une State Machine "introuvable": elle
-//   existe bien, mais sur un artboard différent de celui chargé par défaut.
-// - stateMachine: nom EXACT d'une State Machine à cibler en particulier
-//   (optionnel). Si tu ne le passes pas, le composant détecte automatiquement
-//   TOUTES les State Machines de l'artboard chargé et les active.
-// - hoverInput: nom d'un input booléen à basculer au survol (cherché dans
-//   toutes les State Machines actives si `stateMachine` n'est pas précisé)
-// - autoBind: équivalent du réglage "Auto Bind" de Framer — lie automatiquement
-//   la ViewModel Instance par défaut si le fichier utilise le Data Binding Rive
+//   l'artboard par défaut du fichier).
+// - stateMachine: nom EXACT d'une State Machine à cibler (optionnel). Si tu ne
+//   le passes pas, le composant détecte et joue automatiquement TOUTES les
+//   State Machines de l'artboard chargé.
+// - hoverInput: nom d'un input booléen à basculer au survol
+// - autoBind: équivalent du réglage "Auto Bind" de Framer (Data Binding Rive)
 // - autoplay: joue l'animation par défaut au chargement
-//
-// Note WebGL: les navigateurs limitent le nombre de contextes WebGL actifs en
-// même temps par page (souvent ~8-16 selon le GPU/navigateur). Comme le site
-// affiche plusieurs Rive dans une liste qui défile, ce composant monte
-// l'animation seulement quand sa carte approche du viewport et la détruit
-// (rive.cleanup()) quand elle en sort, pour ne jamais dépasser cette limite.
 
 export interface Props {
   src: string;
@@ -70,124 +75,141 @@ const uid = `rive-${Math.random().toString(36).slice(2, 9)}`;
 
   type RiveInstance = InstanceType<typeof Rive>;
 
+  // Résolution plafonnée: voir note en tête de fichier. 1.5x garde un rendu
+  // net même sur écran Retina sans multiplier le travail du GPU par 9.
+  const MAX_DPR = 1.5;
+  const cappedDpr = () => Math.min(window.devicePixelRatio || 1, MAX_DPR);
+
   const prefersReducedMotion = window.matchMedia(
     '(prefers-reduced-motion: reduce)'
   ).matches;
 
-  function mountRive(canvas: HTMLCanvasElement): RiveInstance | null {
-    const src = canvas.dataset.riveSrc;
-    if (!src) return null;
+  if (!prefersReducedMotion) {
+    // Registre partagé: une seule boucle de resize/visibilité pour toutes
+    // les cartes Rive de la page, plutôt qu'un listener par instance.
+    const active = new Map<HTMLCanvasElement, RiveInstance>();
+    let resizeQueued = false;
 
-    const artboard = canvas.dataset.riveArtboard || undefined;
-    // Si un nom précis est fourni, on cible uniquement celui-là. Sinon on laisse
-    // `stateMachines` vide au chargement et on activera TOUT ce qu'on trouve
-    // une fois le fichier chargé (voir onLoad plus bas) — ça marche quel que
-    // soit le nom réel donné à la State Machine dans l'éditeur Rive.
-    const explicitStateMachine = canvas.dataset.riveStateMachine || undefined;
-    const hoverInputName = canvas.dataset.riveHoverInput;
-    const autoplay = canvas.dataset.riveAutoplay !== 'false';
-    const autoBind = canvas.dataset.riveAutoBind !== 'false';
-
-    const rive = new Rive({
-      src,
-      canvas,
-      artboard,
-      autoplay,
-      autoBind,
-      stateMachines: explicitStateMachine ? [explicitStateMachine] : undefined,
-      useOffscreenRenderer: true,
-      layout: new Layout({ fit: Fit.Cover, alignment: Alignment.Center }),
-      onLoad: () => {
-        // Verrouille le ratio largeur/hauteur natif de l'artwork (équivalent
-        // du petit cadenas "lock aspect ratio" sur Framer): on lit les bornes
-        // réelles de l'artboard chargé et on applique ce ratio au conteneur
-        // parent. Comme ça, en Fit: Cover, la hauteur suit toujours la
-        // largeur disponible dans la même proportion que le dessin d'origine
-        // — au lieu d'une hauteur fixe en pixels qui finit par rogner
-        // beaucoup trop sur les côtés quand la colonne s'élargit.
-        const bounds = rive.bounds;
-        const container = canvas.parentElement;
-        if (bounds && container) {
-          const width = bounds.maxX - bounds.minX;
-          const height = bounds.maxY - bounds.minY;
-          if (width > 0 && height > 0) {
-            container.style.aspectRatio = `${width} / ${height}`;
-          }
-        }
-        rive.resizeDrawingSurfaceToCanvas();
-
-        // Aucun nom précis fourni: on découvre les State Machines de l'artboard
-        // chargé et on les joue toutes, pour activer Listeners/transitions sans
-        // avoir besoin de connaître leur nom exact à l'avance.
-        if (!explicitStateMachine) {
-          const names = rive.stateMachineNames;
-          if (names && names.length > 0) {
-            rive.play(names);
-          }
-        }
-      },
-    });
-
-    // Bascule un input booléen au survol de la zone parente (utile pour les
-    // aperçus de projet: la carte entière déclenche l'animation). On cherche
-    // l'input dans la State Machine ciblée si elle est précisée, sinon dans
-    // toutes les State Machines actives du fichier.
-    if (hoverInputName) {
-      const zone =
-        (canvas.closest('[data-rive-hover-zone]') as HTMLElement | null) ??
-        canvas.parentElement;
-
-      const setHover = (value: boolean) => {
-        try {
-          const names = explicitStateMachine
-            ? [explicitStateMachine]
-            : rive.stateMachineNames;
-          for (const name of names ?? []) {
-            const inputs = rive.stateMachineInputs(name);
-            const input = inputs?.find((i) => i.name === hoverInputName);
-            if (input) input.value = value;
-          }
-        } catch {
-          // la State Machine n'est pas encore prête, on ignore silencieusement
-        }
-      };
-
-      zone?.addEventListener('mouseenter', () => setHover(true));
-      zone?.addEventListener('mouseleave', () => setHover(false));
-    }
-
-    const resize = () => rive.resizeDrawingSurfaceToCanvas();
-    window.addEventListener('resize', resize);
-
-    return rive;
-  }
-
-  document
-    .querySelectorAll<HTMLCanvasElement>('canvas[data-rive-src]')
-    .forEach((canvas) => {
-      if (prefersReducedMotion) {
-        // On respecte la préférence utilisateur: pas de lecture automatique.
-        // Tu peux remplacer ceci par une image statique de repli si besoin.
-        return;
+    const resizeAll = () => {
+      resizeQueued = false;
+      for (const rive of active.values()) {
+        rive.resizeDrawingSurfaceToCanvas(cappedDpr());
       }
+    };
 
-      let rive: RiveInstance | null = null;
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting && !rive) {
-              rive = mountRive(canvas);
-            } else if (!entry.isIntersecting && rive) {
-              // Libère le contexte WebGL tant que la carte est hors-écran.
-              rive.cleanup();
-              rive = null;
-            }
-          }
-        },
-        { rootMargin: '200px' }
-      );
-
-      observer.observe(canvas);
+    window.addEventListener('resize', () => {
+      if (resizeQueued) return;
+      resizeQueued = true;
+      requestAnimationFrame(resizeAll);
     });
+
+    // Onglet caché ou masqué = on coupe le rendu de toutes les instances
+    // montées, visibles ou non, pour ne jamais solliciter le GPU en fond.
+    document.addEventListener('visibilitychange', () => {
+      for (const rive of active.values()) {
+        if (document.hidden) {
+          rive.pause();
+        } else {
+          rive.play();
+        }
+      }
+    });
+
+    document
+      .querySelectorAll<HTMLCanvasElement>('canvas[data-rive-src]')
+      .forEach((canvas) => {
+        const src = canvas.dataset.riveSrc;
+        if (!src) return;
+
+        const artboard = canvas.dataset.riveArtboard || undefined;
+        const explicitStateMachine = canvas.dataset.riveStateMachine || undefined;
+        const hoverInputName = canvas.dataset.riveHoverInput;
+        const autoplay = canvas.dataset.riveAutoplay !== 'false';
+        const autoBind = canvas.dataset.riveAutoBind !== 'false';
+
+        let created = false;
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                if (!created) {
+                  // Première apparition: on crée l'instance une seule fois.
+                  created = true;
+                  const rive = new Rive({
+                    src,
+                    canvas,
+                    artboard,
+                    autoplay,
+                    autoBind,
+                    stateMachines: explicitStateMachine ? [explicitStateMachine] : undefined,
+                    useOffscreenRenderer: true,
+                    layout: new Layout({ fit: Fit.Cover, alignment: Alignment.Center }),
+                    onLoad: () => {
+                      // Verrouille le ratio natif de l'artwork (équivalent du
+                      // cadenas "lock aspect ratio" de Framer) pour que
+                      // Fit: Cover n'ait jamais à rogner excessivement.
+                      const bounds = rive.bounds;
+                      const container = canvas.parentElement;
+                      if (bounds && container) {
+                        const width = bounds.maxX - bounds.minX;
+                        const height = bounds.maxY - bounds.minY;
+                        if (width > 0 && height > 0) {
+                          container.style.aspectRatio = `${width} / ${height}`;
+                        }
+                      }
+                      rive.resizeDrawingSurfaceToCanvas(cappedDpr());
+
+                      if (!explicitStateMachine) {
+                        const names = rive.stateMachineNames;
+                        if (names && names.length > 0) {
+                          rive.play(names);
+                        }
+                      }
+                    },
+                  });
+
+                  active.set(canvas, rive);
+
+                  if (hoverInputName) {
+                    const zone =
+                      (canvas.closest('[data-rive-hover-zone]') as HTMLElement | null) ??
+                      canvas.parentElement;
+
+                    const setHover = (value: boolean) => {
+                      try {
+                        const names = explicitStateMachine
+                          ? [explicitStateMachine]
+                          : rive.stateMachineNames;
+                        for (const name of names ?? []) {
+                          const inputs = rive.stateMachineInputs(name);
+                          const input = inputs?.find((i) => i.name === hoverInputName);
+                          if (input) input.value = value;
+                        }
+                      } catch {
+                        // la State Machine n'est pas encore prête, on ignore
+                      }
+                    };
+
+                    zone?.addEventListener('mouseenter', () => setHover(true));
+                    zone?.addEventListener('mouseleave', () => setHover(false));
+                  }
+                } else {
+                  // Déjà créée: on reprend juste la lecture, sans re-parser
+                  // le fichier ni recréer de contexte.
+                  active.get(canvas)?.play();
+                }
+              } else {
+                // Hors du viewport: pause uniquement — l'instance et son
+                // état restent en mémoire, prêts à reprendre instantanément.
+                active.get(canvas)?.pause();
+              }
+            }
+          },
+          { rootMargin: '200px' }
+        );
+
+        observer.observe(canvas);
+      });
+  }
 </script>

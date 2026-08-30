@@ -69,13 +69,30 @@ excessivement le dessin sur les côtés quand la colonne s'élargit. Le
 chargement (pour éviter un saut de mise en page) — la vraie proportion vient
 du fichier lui-même, une fois chargé.
 
-**Contexte WebGL** : les navigateurs limitent le nombre de contextes WebGL
-actifs simultanément par page (souvent 8 à 16 selon le GPU/navigateur). Comme
-la liste de projets peut s'allonger, `RiveEmbed.astro` monte chaque animation
-seulement quand sa carte approche du viewport (`IntersectionObserver`) et
-appelle `rive.cleanup()` quand elle en sort, pour ne jamais dépasser cette
-limite. `useOffscreenRenderer: true` est aussi activé, pour partager un seul
-contexte WebGL entre les instances quand c'est possible.
+**Contexte WebGL & performance** : les navigateurs limitent le nombre de
+contextes WebGL actifs simultanément par page (souvent 8 à 16 selon le
+GPU/navigateur), et faire tourner plusieurs animations Rive en continu peut
+solliciter fortement le GPU (ventilateur qui s'emballe, ordinateur qui
+chauffe). `RiveEmbed.astro` applique plusieurs optimisations pour rester
+léger avec plusieurs cartes sur une même page :
+
+- **Résolution plafonnée** (`resizeDrawingSurfaceToCanvas(1.5)`) : au lieu du
+  `devicePixelRatio` natif de l'écran (jusqu'à 3x sur certains laptops), on
+  plafonne à 1.5x — net à l'œil, mais jusqu'à 4x moins de pixels à calculer
+  par frame.
+- **Pause plutôt que destruction** : chaque instance Rive n'est créée qu'une
+  seule fois, à sa première apparition dans le viewport. Ensuite, sortir/
+  entrer dans le viewport ne fait que mettre en pause / relancer la lecture
+  (`rive.pause()` / `rive.play()`), sans re-télécharger ni re-parser le
+  fichier à chaque scroll.
+- **Onglet caché = tout en pause** : un `visibilitychange` global coupe le
+  rendu de toutes les animations dès que l'onglet n'est plus visible.
+- **Un seul listener resize partagé**, limité à une fois par frame
+  (`requestAnimationFrame`) pour toutes les cartes, au lieu d'un listener par
+  carte déclenché à chaque pixel de redimensionnement.
+- **`useOffscreenRenderer: true`** : partage un contexte WebGL entre les
+  instances plutôt que d'en ouvrir un par carte (recommandation officielle
+  Rive dès qu'on affiche plusieurs graphismes sur une même page).
 
 Deux façons de rendre une animation interactive :
 
