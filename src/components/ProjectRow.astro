@@ -9,10 +9,14 @@ export interface Props {
 
 const { project } = Astro.props;
 const isExternal = project.href.startsWith('http');
+// Un lien '#' provoque un saut en haut de page au clic — tant qu'il n'y a
+// pas de vraie URL, on omet complètement l'attribut href (l'élément garde
+// son style de carte cliquable/hover, mais ne déclenche aucune navigation).
+const href = project.href === '#' ? undefined : project.href;
 ---
 
 <a
-  href={project.href}
+  href={href}
   target={isExternal ? '_blank' : undefined}
   rel={isExternal ? 'noreferrer' : undefined}
   class="group relative mb-16 block last:mb-0"

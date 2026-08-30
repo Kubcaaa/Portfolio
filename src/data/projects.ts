@@ -44,10 +44,7 @@ export const projects: Project[] = [
     riveHeight: 544,
   },
   {
-    slug: 'chocolat-cart',
-    title: 'Chocolat Cart',
-    categories: ['Branding', 'Interactive design'],
-    tools: ['Rive', 'Figma'],
+    tools: ['Rive', 'Figma', 'Blender'],
     year: '2025',
     href: '#',
     cover: '/images/projects/chocolat-cart.jpg',

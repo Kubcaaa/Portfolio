@@ -6,7 +6,7 @@ export interface Props {
 
 const { name, variant = 'pill' } = Astro.props;
 
-// Monogrammes simples et colorés plutôt que les logos exacts des outils.
+// Monogrammes simples en attendant les vrais SVG d'icônes (à venir).
 const monograms: Record<string, { label: string; className: string }> = {
   Rive: { label: 'R', className: 'bg-ink text-paper' },
   Figma: { label: 'Fg', className: 'bg-flare text-paper' },
@@ -16,9 +16,13 @@ const monograms: Record<string, { label: string; className: string }> = {
 
 const mono = monograms[name] ?? { label: name.slice(0, 2), className: 'bg-ink text-paper' };
 
+// Même design que les pills de catégorie (fond clair, texte noir/navy),
+// que ce soit en overlay sur un visuel ou en pill classique — seul un léger
+// flou de fond (backdrop-blur) est ajouté en overlay pour rester lisible
+// par-dessus des images variées.
 const base =
   variant === 'overlay'
-    ? 'inline-flex items-center gap-2 rounded-lg bg-ink/70 py-1.5 pl-1.5 pr-3 text-xs font-medium text-paper backdrop-blur-sm'
+    ? 'inline-flex items-center gap-2 rounded-xl border border-line/60 bg-paper/90 py-1.5 pl-1.5 pr-3 text-sm font-medium text-ink backdrop-blur-sm'
     : 'inline-flex items-center gap-2 rounded-xl border border-line/70 bg-paper py-1.5 pl-1.5 pr-3 text-sm font-medium text-ink';
 ---
 
