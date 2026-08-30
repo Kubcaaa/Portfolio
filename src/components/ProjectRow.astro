@@ -15,17 +15,20 @@ const isExternal = project.href.startsWith('http');
   href={project.href}
   target={isExternal ? '_blank' : undefined}
   rel={isExternal ? 'noreferrer' : undefined}
-  class="group mb-16 block last:mb-0"
+  class="group relative mb-16 block last:mb-0"
+  data-rive-hover-zone
 >
   <!--
-    min-height = hauteur de secours affichée avant que le .riv soit chargé
-    (évite un saut de mise en page). Une fois chargé, RiveEmbed applique le
-    ratio natif réel de l'artwork au conteneur, qui prend le dessus.
+    aspect-ratio (pas min-height!) = ratio de secours générique avant que le
+    .riv soit chargé. Un min-height fixe casserait le rendu en dessous de la
+    largeur pour laquelle il a été pensé: sur mobile, la hauteur "réelle" du
+    ratio devient plus petite que ce min-height, la boîte reste forcée trop
+    haute, et Fit: Cover zoome/rogne les côtés pour compenser. Avec
+    aspect-ratio, la hauteur suit toujours proportionnellement la largeur,
+    à toutes les tailles d'écran. RiveEmbed remplace ce ratio générique par
+    le vrai ratio de l'artwork dès que le fichier est chargé.
   -->
-  <div
-    class="w-full overflow-hidden rounded-2xl bg-ink/[0.03]"
-    style={`min-height: ${project.riveHeight}px`}
-  >
+  <div class="w-full overflow-hidden rounded-2xl bg-ink/[0.03]" style="aspect-ratio: 4 / 3">
     {
       project.riveHover ? (
         <RiveEmbed
@@ -43,9 +46,9 @@ const isExternal = project.href.startsWith('http');
         />
       )
     }
-  </div>
 
-  <div class="mt-4 flex flex-wrap gap-2">
-    {project.tools.map((tool) => <ToolPill name={tool} variant="pill" />)}
+    <div class="pointer-events-none absolute bottom-4 left-4 flex flex-wrap gap-2">
+      {project.tools.map((tool) => <ToolPill name={tool} variant="overlay" />)}
+    </div>
   </div>
 </a>

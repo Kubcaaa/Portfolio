@@ -5,7 +5,7 @@ export default {
     extend: {
       colors: {
         ink: '#14171F', // texte / fond sombre
-        paper: '#EFEADC', // fond principal, bone chaud
+        paper: '#FFFFFF', // fond principal, blanc
         flare: '#FF4B2B', // accent principal, orange-rouge vif
         signal: '#00C2A8', // accent secondaire, sarcelle
         muted: '#6E6B5C', // texte secondaire
