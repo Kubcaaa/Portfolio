@@ -6,30 +6,54 @@ export interface Props {
 
 const { name, variant = 'pill' } = Astro.props;
 
-// Monogrammes simples en attendant les vrais SVG d'icônes (à venir).
-const monograms: Record<string, { label: string; className: string }> = {
-  Rive: { label: 'R', className: 'bg-ink text-paper' },
-  Figma: { label: 'Fg', className: 'bg-flare text-paper' },
-  Framer: { label: 'Fr', className: 'bg-signal text-paper' },
-  Blender: { label: 'Bl', className: 'bg-muted text-paper' },
+// Icônes reprises de src/ico/*.svg (rect de fond retiré, tracés conservés).
+const icons: Record<string, { viewBox: string; content: string }> = {
+  Rive: {
+    // src/ico/Rive.svg
+    viewBox: '0 0 14 14',
+    content:
+      '<path d="M 3.08 3.562 C 3.08 3.828 3.298 4.044 3.567 4.044 L 7.603 4.044 C 8.063 4.044 8.442 4.184 8.74 4.465 C 9.038 4.746 9.186 5.108 9.186 5.549 C 9.186 5.958 9.038 6.292 8.74 6.553 C 8.442 6.808 8.063 6.935 7.603 6.935 L 5.849 6.935 C 5.58 6.935 5.362 7.15 5.362 7.417 C 5.362 7.683 5.58 7.898 5.849 7.898 L 7.786 7.898 L 9.531 10.669 C 9.64 10.836 9.792 10.92 9.988 10.92 C 10.205 10.92 10.357 10.836 10.445 10.669 C 10.533 10.495 10.516 10.311 10.394 10.117 L 8.841 7.647 C 9.261 7.46 9.592 7.186 9.836 6.824 C 10.079 6.456 10.201 6.031 10.201 5.549 C 10.201 5.061 10.09 4.633 9.866 4.265 C 9.65 3.896 9.346 3.609 8.953 3.401 C 8.561 3.187 8.111 3.08 7.603 3.08 L 3.567 3.08 C 3.298 3.08 3.08 3.296 3.08 3.562 Z" fill="currentColor" />',
+  },
+  Figma: {
+    // src/ico/figma.svg — couleurs de la marque conservées
+    viewBox: '0 0 9.333 14',
+    content:
+      '<path d="M 0 11.667 C 0 10.378 1.045 9.333 2.333 9.333 L 4.667 9.333 L 4.667 11.667 C 4.667 12.955 3.622 14 2.333 14 C 1.045 14 0 12.955 0 11.667 Z" fill="rgb(36,203,113)" />' +
+      '<path d="M 4.667 0 L 4.667 4.667 L 7 4.667 C 8.289 4.667 9.333 3.622 9.333 2.333 C 9.333 1.045 8.289 0 7 0 Z" fill="rgb(255,114,55)" />' +
+      '<path d="M 4.643 7 C 4.643 5.711 5.688 4.667 6.977 4.667 C 8.265 4.667 9.31 5.711 9.31 7 C 9.31 8.289 8.265 9.333 6.977 9.333 C 5.688 9.333 4.643 8.289 4.643 7 Z" fill="rgb(0,182,255)" />' +
+      '<path d="M 0 2.333 C 0 3.622 1.045 4.667 2.333 4.667 L 4.667 4.667 L 4.667 0 L 2.333 0 C 1.045 0 0 1.045 0 2.333 Z" fill="rgb(255,55,55)" />' +
+      '<path d="M 0 7 C 0 8.289 1.045 9.333 2.333 9.333 L 4.667 9.333 L 4.667 4.667 L 2.333 4.667 C 1.045 4.667 0 5.711 0 7 Z" fill="rgb(135,79,255)" />',
+  },
+  Blender: {
+    // src/ico/blender.svg
+    viewBox: '0 0 17.207 14',
+    content:
+      '<path d="M 17.157 7.796 C 17.056 7.086 16.81 6.412 16.425 5.794 C 16.09 5.255 15.659 4.775 15.146 4.367 L 15.147 4.366 L 9.753 0.223 C 9.749 0.219 9.745 0.216 9.741 0.213 C 9.561 0.076 9.319 0 9.057 0 C 8.796 0 8.543 0.076 8.347 0.213 C 8.136 0.361 8.016 0.556 8.007 0.764 C 8 0.958 8.092 1.145 8.269 1.291 C 8.616 1.565 8.962 1.845 9.309 2.125 C 9.646 2.397 9.993 2.677 10.338 2.95 L 3.731 2.945 C 2.975 2.945 2.461 3.3 2.355 3.894 C 2.308 4.154 2.39 4.441 2.574 4.66 C 2.768 4.892 3.051 5.02 3.369 5.02 L 3.873 5.02 C 4.569 5.02 5.268 5.019 5.966 5.017 L 6.631 5.015 L 0.635 9.452 L 0.611 9.469 C 0.276 9.726 0.057 10.086 0.01 10.457 C -0.026 10.738 0.039 10.994 0.199 11.199 C 0.39 11.444 0.687 11.578 1.037 11.578 C 1.381 11.578 1.731 11.448 2.025 11.211 L 5.263 8.561 C 5.249 8.69 5.232 8.88 5.234 9.018 C 5.238 9.236 5.308 9.674 5.419 10.029 C 5.648 10.759 6.034 11.428 6.566 12.014 C 7.119 12.625 7.794 13.109 8.569 13.453 C 9.39 13.816 10.272 14 11.19 14 L 11.199 14 C 12.121 13.998 13.005 13.811 13.828 13.444 C 14.605 13.096 15.279 12.61 15.831 11.999 C 16.362 11.409 16.747 10.74 16.976 10.01 C 17.089 9.649 17.162 9.276 17.192 8.899 C 17.22 8.534 17.208 8.163 17.157 7.796 Z M 11.258 11.297 C 9.232 11.297 7.59 9.828 7.59 8.015 C 7.59 6.203 9.232 4.734 11.258 4.734 C 13.283 4.734 14.925 6.203 14.925 8.015 C 14.925 9.828 13.283 11.297 11.258 11.297 Z M 13.372 7.727 C 13.402 8.268 13.186 8.77 12.807 9.142 C 12.421 9.521 11.87 9.759 11.254 9.759 C 10.639 9.759 10.088 9.521 9.702 9.142 C 9.323 8.77 9.107 8.268 9.137 7.727 C 9.166 7.202 9.422 6.738 9.808 6.41 C 10.188 6.087 10.698 5.89 11.254 5.89 C 11.811 5.89 12.321 6.087 12.701 6.41 C 13.087 6.738 13.343 7.202 13.372 7.727 Z" fill="currentColor" />',
+  },
 };
 
-const mono = monograms[name] ?? { label: name.slice(0, 2), className: 'bg-ink text-paper' };
+// Framer n'a pas d'icône dédiée dans src/ico pour l'instant: on garde le
+// monogramme comme repli.
+const fallbackLabel = name.slice(0, 2);
 
-// Style overlay original: fond sombre translucide + texte clair, pour se
-// détacher nettement par-dessus des visuels variés. Les pills catégories
-// (colonne de gauche, CategoryPill.astro) gardent leur style clair à part.
+// Style overlay: pill verre clair par-dessus les visuels de projet (mêmes
+// tokens que les pills catégories — colonne de gauche, CategoryPill.astro —
+// mais fond semi-transparent puisqu'il flotte sur une image/animation).
 const base =
   variant === 'overlay'
-    ? 'inline-flex items-center gap-2 rounded-pill bg-ink/70 py-1.5 pl-1.5 pr-3 text-xs font-medium text-paper backdrop-blur-sm'
-    : 'inline-flex items-center gap-2 rounded-pill border border-line/70 bg-paper py-1.5 pl-1.5 pr-3 text-sm font-medium text-ink';
+    ? 'inline-flex items-center gap-2 rounded-pill border border-[#EDEDED] bg-[#F7F7F7]/55 py-1.5 pl-1.5 pr-3 text-xs font-medium text-ink backdrop-blur-sm'
+    : 'inline-flex items-center gap-2 rounded-pill border border-[#EDEDED] bg-[#F7F7F7] py-1.5 pl-1.5 pr-3 text-sm font-medium text-ink';
 ---
 
 <span class={base}>
-  <span
-    class={`flex h-5 w-5 items-center justify-center rounded-badge font-mono text-[10px] font-bold ${mono.className}`}
-  >
-    {mono.label}
+  <span class="flex h-5 w-5 items-center justify-center rounded-badge bg-paper">
+    {
+      icons[name] ? (
+        <svg viewBox={icons[name].viewBox} class="h-3 w-3" set:html={icons[name].content} />
+      ) : (
+        <span class="font-mono text-[10px] font-bold text-ink">{fallbackLabel}</span>
+      )
+    }
   </span>
   {name}
 </span>
