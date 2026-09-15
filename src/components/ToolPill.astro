@@ -21,13 +21,13 @@ const mono = monograms[name] ?? { label: name.slice(0, 2), className: 'bg-ink te
 // (colonne de gauche, CategoryPill.astro) gardent leur style clair à part.
 const base =
   variant === 'overlay'
-    ? 'inline-flex items-center gap-2 rounded-lg bg-ink/70 py-1.5 pl-1.5 pr-3 text-xs font-medium text-paper backdrop-blur-sm'
-    : 'inline-flex items-center gap-2 rounded-xl border border-line/70 bg-paper py-1.5 pl-1.5 pr-3 text-sm font-medium text-ink';
+    ? 'inline-flex items-center gap-2 rounded-pill bg-ink/70 py-1.5 pl-1.5 pr-3 text-xs font-medium text-paper backdrop-blur-sm'
+    : 'inline-flex items-center gap-2 rounded-pill border border-line/70 bg-paper py-1.5 pl-1.5 pr-3 text-sm font-medium text-ink';
 ---
 
 <span class={base}>
   <span
-    class={`flex h-5 w-5 items-center justify-center rounded-md font-mono text-[10px] font-bold ${mono.className}`}
+    class={`flex h-5 w-5 items-center justify-center rounded-badge font-mono text-[10px] font-bold ${mono.className}`}
   >
     {mono.label}
   </span>

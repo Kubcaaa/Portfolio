@@ -23,6 +23,18 @@ export default {
       screens: {
         xs: '420px',
       },
+      borderRadius: {
+        // Échelle de radius unique pour tout le site, sur le modèle des
+        // pills catégories: 16px pour les contenants principaux (pills,
+        // boutons, cartes projet), 8px — la moitié — pour les badges
+        // d'icônes imbriqués à l'intérieur. Utiliser rounded-pill /
+        // rounded-badge partout plutôt que des valeurs Tailwind génériques
+        // (rounded-xl, rounded-2xl...) pour garder cette logique explicite
+        // et éviter que de nouveaux composants dérivent avec un radius
+        // différent au fil du temps.
+        pill: '1rem', // 16px — pills, boutons, cartes/images
+        badge: '0.5rem', // 8px — badges d'icônes à l'intérieur des pills
+      },
     },
   },
   plugins: [],
