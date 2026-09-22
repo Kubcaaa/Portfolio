@@ -78,4 +78,16 @@ export const projects: Project[] = [
     riveHover: '/rive/swiss_knife.riv',
     riveHeight: 544,
   },
+  {
+    slug: 'dn-interiores',
+    title: 'DN Interiores',
+    categories: ['Web'],
+    tools: ['Framer'],
+    year: '2025',
+    href: 'https://dninteriores.framer.website/',
+    cover: '/img/dninterior.avif',
+    // Pas de riveHover: ProjectRow affiche la cover en <img>, avec le
+    // léger effet de scale au survol déjà géré par group-hover:scale-105.
+    riveHeight: 500,
+  },
 ];
