@@ -23,6 +23,13 @@ export type Project = {
   riveStateMachine?: string;
   /** Hauteur fixe de la carte en pixels, copiée depuis la config Framer de ce projet */
   riveHeight: number;
+  /**
+   * Ratio d'aspect CSS (ex: '1788 / 966') pour la carte des projets sans
+   * riveHover. Par défaut 4/3 — utile quand la cover est un screenshot
+   * dont le ratio natif est différent, pour éviter que object-cover
+   * ne rogne l'image.
+   */
+  coverAspect?: string;
 };
 
 // Chaque entrée correspond à un fichier .riv réellement présent dans public/rive/.
@@ -89,5 +96,23 @@ export const projects: Project[] = [
     // Pas de riveHover: ProjectRow affiche la cover en <img>, avec le
     // léger effet de scale au survol déjà géré par group-hover:scale-105.
     riveHeight: 500,
+    // Ratio natif du screenshot (1788x966) pour éviter que object-cover
+    // ne rogne les côtés de l'image dans le cadre 4/3 par défaut.
+    coverAspect: '1788 / 966',
+  },
+  {
+    slug: 'the-salty-flamingos',
+    title: 'The Salty Flamingos',
+    categories: ['Web'],
+    tools: ['Framer'],
+    year: '2025',
+    href: 'https://www.thesaltyflamingos.com/',
+    cover: '/img/thesaltyflamingos.avif',
+    // Pas de riveHover: ProjectRow affiche la cover en <img>, avec le
+    // léger effet de scale au survol déjà géré par group-hover:scale-105.
+    riveHeight: 500,
+    // Ratio natif du screenshot (1800x1017) pour éviter que object-cover
+    // ne rogne les côtés de l'image dans le cadre 4/3 par défaut.
+    coverAspect: '1800 / 1017',
   },
 ];
