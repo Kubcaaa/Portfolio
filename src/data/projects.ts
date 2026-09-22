@@ -86,21 +86,6 @@ export const projects: Project[] = [
     riveHeight: 544,
   },
   {
-    slug: 'dn-interiores',
-    title: 'DN Interiores',
-    categories: ['Web'],
-    tools: ['Framer'],
-    year: '2025',
-    href: 'https://dninteriores.framer.website/',
-    cover: '/img/dninterior.avif',
-    // Pas de riveHover: ProjectRow affiche la cover en <img>, avec le
-    // léger effet de scale au survol déjà géré par group-hover:scale-105.
-    riveHeight: 500,
-    // Ratio natif du screenshot (1788x966) pour éviter que object-cover
-    // ne rogne les côtés de l'image dans le cadre 4/3 par défaut.
-    coverAspect: '1788 / 966',
-  },
-  {
     slug: 'the-salty-flamingos',
     title: 'The Salty Flamingos',
     categories: ['Web'],
@@ -114,5 +99,20 @@ export const projects: Project[] = [
     // Ratio natif du screenshot (1800x1017) pour éviter que object-cover
     // ne rogne les côtés de l'image dans le cadre 4/3 par défaut.
     coverAspect: '1800 / 1017',
+  },
+  {
+    slug: 'dn-interiores',
+    title: 'DN Interiores',
+    categories: ['Web'],
+    tools: ['Framer'],
+    year: '2025',
+    href: 'https://dninteriores.framer.website/',
+    cover: '/img/dninterior.avif',
+    // Pas de riveHover: ProjectRow affiche la cover en <img>, avec le
+    // léger effet de scale au survol déjà géré par group-hover:scale-105.
+    riveHeight: 500,
+    // Ratio natif du screenshot (1788x966) pour éviter que object-cover
+    // ne rogne les côtés de l'image dans le cadre 4/3 par défaut.
+    coverAspect: '1788 / 966',
   },
 ];
